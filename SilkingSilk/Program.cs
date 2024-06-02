@@ -8,24 +8,23 @@ namespace SilkingSilk
     internal class Program
     {
         private static IWindow _window;
-        private static GL Gl;
-
+        private static GL _gl;
 
         //Our new abstracted objects, here we specify what the types are.
-        private static BufferObject<float> Vbo;
-        private static BufferObject<uint> Ebo;
-        private static VertexArrayObject<float, uint> Vao;
-        private static SilkingSilk.Shader Shader;
-        private static readonly float[] Vertices =
+        private static BufferObject<float> _vbo;
+        private static BufferObject<uint> _ebo;
+        private static VertexArrayObject<float, uint> _vao;
+        private static SilkingSilk.Shader _shader;
+        private static float[] _vertices =
         {
-            //X    Y      Z     R  G  B  A
-             0.5f,  0.5f, 0.0f, 1, 0, 0, 1,
-             0.5f, -0.5f, 0.0f, 0, 0, 0, 1,
-            -0.5f, -0.5f, 0.0f, 0, 0, 1, 1,
-            -0.5f,  0.5f, 0.5f, 0, 0, 0, 1
+            //aPosition     | aTexCoords
+            0.5f,  0.5f, 0.0f,  1.0f, 1.0f,
+            0.5f, -0.5f, 0.0f,  1.0f, 0.0f,
+            -0.5f, -0.5f, 0.0f,  0.0f, 0.0f,
+            -0.5f,  0.5f, 0.0f,  0.0f, 1.0f
         };
 
-        private static readonly uint[] Indices =
+        private static readonly uint[] _indices =
 {
             0, 1, 3,
             1, 2, 3
@@ -55,17 +54,17 @@ namespace SilkingSilk
             for (int i = 0; i < input.Keyboards.Count; i++)
                 input.Keyboards[i].KeyDown += KeyDown;
 
-            Gl = GL.GetApi(_window);
+            _gl = GL.GetApi(_window);
             //Instantiating our new abstractions
-            Ebo = new BufferObject<uint>(Gl, Indices, BufferTargetARB.ElementArrayBuffer);
-            Vbo = new BufferObject<float>(Gl, Vertices, BufferTargetARB.ArrayBuffer);
-            Vao = new VertexArrayObject<float, uint>(Gl, Vbo, Ebo);
+            _ebo = new BufferObject<uint>(_gl, _indices, BufferTargetARB.ElementArrayBuffer);
+            _vbo = new BufferObject<float>(_gl, _vertices, BufferTargetARB.ArrayBuffer);
+            _vao = new VertexArrayObject<float, uint>(_gl, _vbo, _ebo);
 
             //Telling the VAO object how to lay out the attribute pointers
-            Vao.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 7, 0);
-            Vao.VertexAttributePointer(1, 4, VertexAttribPointerType.Float, 7, 3);
+            _vao.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 7, 0);
+            _vao.VertexAttributePointer(1, 4, VertexAttribPointerType.Float, 7, 3);
 
-            Shader = new SilkingSilk.Shader(Gl, "shader.vert", "shader.frag");
+            _shader = new SilkingSilk.Shader(_gl, "shader.vert", "shader.frag");
         }
 
         private static void KeyDown(IKeyboard keyboard, Key key, int keyCode)
@@ -79,25 +78,24 @@ namespace SilkingSilk
 
         private static unsafe void OnRender(double dt)
         {
-            Gl.Clear((uint)ClearBufferMask.ColorBufferBit);
+            _gl.Clear((uint)ClearBufferMask.ColorBufferBit);
 
             //Binding and using our VAO and shader.
-            Vao.Bind();
-            Shader.Use();
+            _vao.Bind();
+            _shader.Use();
             //Setting a uniform.
-            Shader.SetUniform("uBlue", (float)Math.Sin(DateTime.Now.Millisecond / 1000f * Math.PI));
+            _shader.SetUniform("uBlue", (float)Math.Sin(DateTime.Now.Millisecond / 1000f * Math.PI));
 
-            Gl.DrawElements(PrimitiveType.Triangles, (uint)Indices.Length, DrawElementsType.UnsignedInt, null);
-
+            _gl.DrawElements(PrimitiveType.Triangles, (uint)_indices.Length, DrawElementsType.UnsignedInt, (void*)0);
         }
 
         private static void OnClose()
         {
             //Remember to dispose all the instances.
-            Vbo.Dispose();
-            Ebo.Dispose();
-            Vao.Dispose();
-            Shader.Dispose();
+            _vbo.Dispose();
+            _ebo.Dispose();
+            _vao.Dispose();
+            _shader.Dispose();
         }
     }
 }
